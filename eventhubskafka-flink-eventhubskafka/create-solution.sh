@@ -4,7 +4,7 @@
 set -euo pipefail
 
 export PREFIX=''
-export LOCATION="eastus"
+export LOCATION="koreacentral"
 export TESTTYPE="1"
 export STEPS="CIPTM"
 export FLINK_PLATFORM='aks'
@@ -88,7 +88,7 @@ if [ "$TESTTYPE" == "1" ]; then
     export EVENTHUB_CAPACITY=2
     export HDINSIGHT_WORKERS="4"
     export HDINSIGHT_WORKER_SIZE="Standard_D3_V2"
-    export AKS_NODES=3
+    export AKS_NODES=1
     export FLINK_PARALLELISM=2
     export SIMULATOR_INSTANCES=1
 fi
@@ -99,6 +99,13 @@ if [ -z ${SIMULATOR_INSTANCES+x} ]; then
 fi
 
 export RESOURCE_GROUP=$PREFIX
+
+# remove - characters
+PREFIX=`echo $PREFIX | sed 's/\-//g' `
+# cut length to 15 characters
+PREFIX=${PREFIX:0:15}
+# only lowercase allowed
+PREFIX=${PREFIX,,}
 
 # remove log.txt if exists
 rm -f log.txt

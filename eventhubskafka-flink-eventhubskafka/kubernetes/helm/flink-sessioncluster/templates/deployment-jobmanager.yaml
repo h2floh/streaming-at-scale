@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ include "flink-sessioncluster.fullname" . }}-jobmanager
+spec:
+  replicas: {{ .Values.jobmanager.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "flink-sessioncluster.fullname" . }}
+        component: jobmanager
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      containers:
+      - name: jobmanager
+        image: "{{ .Values.jobmanager.image.repository }}:{{ .Values.jobmanager.image.tag }}"
+        imagePullPolicy: {{ .Values.jobmanager.image.pullPolicy }}
+        workingDir: /opt/flink
+        command: ["/bin/bash", "-c", "$FLINK_HOME/bin/jobmanager.sh start;\
+          while :;
+          do
+            if [[ -f $(find log -name '*jobmanager*.log' -print -quit) ]];
+              then tail -f -n +1 log/*jobmanager*.log;
+            fi;
+          done"]
+        ports:
+        - containerPort: 6123
+          name: rpc
+        - containerPort: 6124
+          name: blob
+        - containerPort: 8081
+          name: ui
+        livenessProbe:
+          tcpSocket:
+            port: 6123
+          initialDelaySeconds: 30
+          periodSeconds: 60
+        volumeMounts:
+        - name: flink-config-volume
+          mountPath: /opt/flink/conf
+        - name: hadoop-config-volume
+          mountPath: /usr/local/hadoop/etc/hadoop
+      volumes:
+      - name: flink-config-volume
+        configMap:
+          name: {{ include "flink-sessioncluster.fullname" . }}-config
+          items:
+          - key: flink-conf.yaml
+            path: flink-conf.yaml
+          - key: log4j.properties
+            path: log4j.properties
+      - name: hadoop-config-volume
+        configMap:
+          name: {{ include "flink-sessioncluster.fullname" . }}-hdfs-config
+          items:
+          - key: core-site.xml
+            path: core-site.xml

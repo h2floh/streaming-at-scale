@@ -1,0 +1,32 @@
+# Default values for flink-sessioncluster.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+checkpoint:
+  ADLSv2endpoint: abfs://<filesystem>@<ADSLv2Account>.dfs.core.windows.net/
+  ADLSv2accountname: <ADSLv2Account>
+  ADLSv2key: 
+
+jobmanager:
+  replicaCount: 1
+
+  image:
+    repository: h2floh/flink-hdfs #flink
+    tag: latest #latest
+    pullPolicy: Always
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+taskmanager:
+  replicaCount: 3
+
+  image:
+    repository: h2floh/flink-hdfs #flink
+    tag: latest #latest
+    pullPolicy: Always
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
